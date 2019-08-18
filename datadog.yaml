@@ -1,0 +1,33 @@
+listeners:
+  - name: docker
+
+config_providers:
+  - name: docker
+    polling: true
+
+# Logs processing
+logs_enabled: true
+logs_config:
+  container_collect_all: true
+
+# APM
+apm_config:
+  enabled: true
+  apm_non_local_traffic: true
+
+# DogStatsD
+use_dogstatsd: true
+# dogstatsd_origin_detection: true
+dogstatsd_non_local_traffic: true
+
+# Use java cgroup memory awareness
+jmx_use_cgroup_memory_limit: true
+
+# Agent logging
+disable_file_logging: true
+log_to_console: true
+log_format_json: true
+
+# Extract tags from Docker labels
+docker_labels_as_tags:
+  com.docker.compose.service: service_name

@@ -5,62 +5,204 @@ services:
     image: springcommunity/spring-petclinic-config-server
     container_name: config-server
     mem_limit: 512M
+    depends_on:
+     - dd-agent
+    entrypoint:
+     - java
+     - -XX:+UnlockExperimentalVMOptions
+     - -XX:+UseCGroupMemoryLimitForHeap
+     - -Djava.security.egd=file:/dev/./urandom
+     - -javaagent:/dd-java-agent.jar
+     - -Ddd.agent.host=dd-agent
+# Interntionally leaving service name as default, to illustrate DataDog not
+# overriding it from the container labels
+#     - -Ddd.service.name=config-agent
+     - -Ddd.trace.analytics.enabled=true
+     - -Ddd.http.client.tag.query-string=true
+     - -Ddd.http.server.tag.query-string=true
+     - -Ddd.logs.injection=true
+     - -Ddd.trace.db.client.split-by-instance=true
+     - -Dlogging.config=/logback-datadog.xml
+     - -jar
+     - /app.jar
     ports:
      - 8888:8888
+    volumes:
+     - ./logback-datadog.xml:/logback-datadog.xml:ro
+    labels:
+     com.datadoghq.ad.logs: '[{"source": "java", "service": "config-server"}]'
 
   discovery-server:
     image: springcommunity/spring-petclinic-discovery-server
     container_name: discovery-server
     mem_limit: 512M
     depends_on:
+      - dd-agent
       - config-server
-    entrypoint: ["./dockerize","-wait=tcp://config-server:8888","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint:
+     - ./dockerize
+     - -wait=tcp://config-server:8888
+     - -timeout=120s
+     - --
+     - java
+     - -XX:+UnlockExperimentalVMOptions
+     - -XX:+UseCGroupMemoryLimitForHeap
+     - -Djava.security.egd=file:/dev/./urandom
+     - -javaagent:/dd-java-agent.jar
+     - -Ddd.service.name=discovery-server
+     - -Ddd.agent.host=dd-agent
+     - -Ddd.trace.analytics.enabled=true
+     - -Ddd.http.client.tag.query-string=true
+     - -Ddd.http.server.tag.query-string=true
+     - -Ddd.logs.injection=true
+     - -Dlogging.config=/logback-datadog.xml
+     - -jar
+     - /app.jar
     ports:
      - 8761:8761
+    volumes:
+     - ./logback-datadog.xml:/logback-datadog.xml:ro
+    labels:
+     com.datadoghq.ad.logs: '[{"source": "java", "service": "discovery-server"}]'
 
   customers-service:
     image: springcommunity/spring-petclinic-customers-service
     container_name: customers-service
     mem_limit: 512M
     depends_on:
+     - dd-agent
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint:
+     - ./dockerize
+     - -wait=tcp://discovery-server:8761
+     - -timeout=120s
+     - --
+     - java
+     - -XX:+UnlockExperimentalVMOptions
+     - -XX:+UseCGroupMemoryLimitForHeap
+     - -Djava.security.egd=file:/dev/./urandom
+     - -javaagent:/dd-java-agent.jar
+     - -Ddd.service.name=customers-service
+     - -Ddd.agent.host=dd-agent
+     - -Ddd.trace.analytics.enabled=true
+     - -Ddd.http.client.tag.query-string=true
+     - -Ddd.http.server.tag.query-string=true
+     - -Ddd.logs.injection=true
+     - -Ddd.service.mapping=hsqldb:customers-service-hsqldb
+     - -Dlogging.config=/logback-datadog.xml
+     - -jar
+     - /app.jar
     ports:
     - 8081:8081
+    volumes:
+     - ./logback-datadog.xml:/logback-datadog.xml:ro
+    labels:
+     com.datadoghq.ad.logs: '[{"source": "java", "service": "customers-service"}]'
 
   visits-service:
     image: springcommunity/spring-petclinic-visits-service
     container_name: visits-service
     mem_limit: 512M
     depends_on:
+     - dd-agent
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint:
+     - ./dockerize
+     - -wait=tcp://discovery-server:8761
+     - -timeout=120s
+     - --
+     - java
+     - -XX:+UnlockExperimentalVMOptions
+     - -XX:+UseCGroupMemoryLimitForHeap
+     - -Djava.security.egd=file:/dev/./urandom
+     - -javaagent:/dd-java-agent.jar
+     - -Ddd.service.name=visits-service
+     - -Ddd.agent.host=dd-agent
+     - -Ddd.trace.analytics.enabled=true
+     - -Ddd.http.client.tag.query-string=true
+     - -Ddd.http.server.tag.query-string=true
+     - -Ddd.logs.injection=true
+     - -Ddd.service.mapping=hsqldb:visits-service-hsqldb
+     - -Dlogging.config=/logback-datadog.xml
+     - -jar
+     - /app.jar
     ports:
      - 8082:8082
+    volumes:
+     - ./logback-datadog.xml:/logback-datadog.xml:ro
+    labels:
+     com.datadoghq.ad.logs: '[{"source": "java", "service": "visits-service"}]'
 
   vets-service:
     image: springcommunity/spring-petclinic-vets-service
     container_name: vets-service
     mem_limit: 512M
     depends_on:
+     - dd-agent
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint:
+     - ./dockerize
+     - -wait=tcp://discovery-server:8761
+     - -timeout=120s
+     - --
+     - java
+     - -XX:+UnlockExperimentalVMOptions
+     - -XX:+UseCGroupMemoryLimitForHeap
+     - -Djava.security.egd=file:/dev/./urandom
+     - -javaagent:/dd-java-agent.jar
+     - -Ddd.service.name=vets-service
+     - -Ddd.agent.host=dd-agent
+     - -Ddd.trace.analytics.enabled=true
+     - -Ddd.http.client.tag.query-string=true
+     - -Ddd.http.server.tag.query-string=true
+     - -Ddd.logs.injection=true
+     - -Ddd.service.mapping=hsqldb:vets-service-hsqldb
+     - -Dlogging.config=/logback-datadog.xml
+     - -jar
+     - /app.jar
     ports:
      - 8083:8083
+    volumes:
+     - ./logback-datadog.xml:/logback-datadog.xml:ro
+    labels:
+     com.datadoghq.ad.logs: '[{"source": "java", "service": "vets-service"}]'
 
   api-gateway:
     image: springcommunity/spring-petclinic-api-gateway
     container_name: api-gateway
     mem_limit: 512M
     depends_on:
+     - dd-agent
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint:
+     - ./dockerize
+     - -wait=tcp://discovery-server:8761
+     - -timeout=120s
+     - --
+     - java
+     - -XX:+UnlockExperimentalVMOptions
+     - -XX:+UseCGroupMemoryLimitForHeap
+     - -Djava.security.egd=file:/dev/./urandom
+     - -javaagent:/dd-java-agent.jar
+     - -Ddd.service.name=api-gateway
+     - -Ddd.agent.host=dd-agent
+     - -Ddd.trace.analytics.enabled=true
+     - -Ddd.http.client.tag.query-string=true
+     - -Ddd.http.server.tag.query-string=true
+     - -Ddd.logs.injection=true
+     - -Dlogging.config=/logback-datadog.xml
+     - -jar
+     - /app.jar
     ports:
      - 8080:8080
+    volumes:
+     - ./logback-datadog.xml:/logback-datadog.xml:ro
+    labels:
+     com.datadoghq.ad.logs: '[{"source": "java", "service": "api-gateway"}]'
 
   tracing-server:
     image: openzipkin/zipkin
@@ -76,22 +218,68 @@ services:
     container_name: admin-server
     mem_limit: 512M
     depends_on:
+     - dd-agent
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint:
+     - ./dockerize
+     - -wait=tcp://discovery-server:8761
+     - -timeout=120s
+     - --
+     - java
+     - -XX:+UnlockExperimentalVMOptions
+     - -XX:+UseCGroupMemoryLimitForHeap
+     - -Djava.security.egd=file:/dev/./urandom
+     - -javaagent:/dd-java-agent.jar
+     - -Ddd.service.name=admin-server
+     - -Ddd.agent.host=dd-agent
+     - -Ddd.trace.analytics.enabled=true
+     - -Ddd.http.client.tag.query-string=true
+     - -Ddd.http.server.tag.query-string=true
+     - -Ddd.logs.injection=true
+     - -Dlogging.config=/logback-datadog.xml
+     - -jar
+     - /app.jar
     ports:
      - 9090:9090
+    volumes:
+     - ./logback-datadog.xml:/logback-datadog.xml:ro
+    labels:
+     com.datadoghq.ad.logs: '[{"source": "java", "service": "admin-server"}]'
 
   hystrix-dashboard:
     image: springcommunity/spring-petclinic-hystrix-dashboard
     container_name: hystrix-dashboard
     mem_limit: 512M
     depends_on:
+     - dd-agent
      - config-server
      - discovery-server
-    entrypoint: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+    entrypoint:
+     - ./dockerize
+     - -wait=tcp://discovery-server:8761
+     - -timeout=120s
+     - --
+     - java
+     - -XX:+UnlockExperimentalVMOptions
+     - -XX:+UseCGroupMemoryLimitForHeap
+     - -Djava.security.egd=file:/dev/./urandom
+     - -javaagent:/dd-java-agent.jar
+     - -Ddd.service.name=hystrix-dashboard
+     - -Ddd.agent.host=dd-agent
+     - -Ddd.trace.analytics.enabled=true
+     - -Ddd.http.client.tag.query-string=true
+     - -Ddd.http.server.tag.query-string=true
+     - -Ddd.logs.injection=true
+     - -Dlogging.config=/logback-datadog.xml
+     - -jar
+     - /app.jar
     ports:
      - 7979:7979
+    volumes:
+     - ./logback-datadog.xml:/logback-datadog.xml:ro
+    labels:
+     com.datadoghq.ad.logs: '[{"source": "java", "service": "hystrix-dashboard"}]'
 
   ## Grafana / Prometheus
 
@@ -108,3 +296,20 @@ services:
     mem_limit: 256M
     ports:
     - 9091:9090
+
+  dd-agent:
+    container_name: dd-agent
+    env_file:
+     - ./dd-agent-api-key.env
+    environment:
+     - DOCKER_CONTENT_TRUST=1
+     - DD_LOG_LEVEL=debug
+    image: datadog/agent:latest
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - /proc/:/host/proc/:ro
+    - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    - ./datadog.yaml:/etc/datadog-agent/datadog.yaml:ro
+    ports:
+    - 8126:8126
+    - 8125:8125/udp

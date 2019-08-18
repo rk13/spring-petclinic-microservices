@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+	<!-- Use JSON encoder for console appender, for DataDog log processing to
+		 collect most of metadata
+	  -->
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        </encoder>
+    </appender>
+	<root level="INFO">
+		<appender-ref ref="CONSOLE" />
+	</root>
+
+    <!-- Required for Loglevel managment into the Spring Petclinic Admin Server-->
+    <jmxConfigurator/>
+</configuration>

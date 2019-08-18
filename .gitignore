@@ -16,3 +16,6 @@ target/
 
 # Branch switching
 generated/
+
+# DataDog API key
+dd-agent-api-key.env
