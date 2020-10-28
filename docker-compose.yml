@@ -303,13 +303,14 @@ services:
      - ./dd-agent-api-key.env
     environment:
      - DOCKER_CONTENT_TRUST=1
-     - DD_LOG_LEVEL=debug
+     - DD_LOG_LEVEL=debug 
     image: datadog/agent:latest
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - /proc/:/host/proc/:ro
     - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
     - ./datadog.yaml:/etc/datadog-agent/datadog.yaml:ro
+    - ./datadog-prometheus.yaml:/etc/datadog-agent/conf.d/prometheus.d/conf.yaml:ro
     ports:
     - 8126:8126
     - 8125:8125/udp
